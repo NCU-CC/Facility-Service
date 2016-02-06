@@ -1,4 +1,5 @@
 Gemfile.lock
 config
 db/seeds.rb
-[._]*.swp
+*.swp
+*.sqlite3

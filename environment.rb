@@ -1,0 +1,16 @@
+require 'rack/cors'
+require 'grape'
+require 'grape_logging'
+require 'json'
+require 'rest-client'
+require 'active_record'
+require 'grape/activerecord'
+require 'kaminari/grape'
+require 'grape-swagger'
+require 'grape-entity'
+# require 'google/apis/calendar_v3'
+# require 'google/api_client/client_secrets'
+# require 'google/api_client/auth/installed_app'
+require './config/settings'
+
+ActiveRecord::Base.default_timezone = :local
