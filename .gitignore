@@ -1,5 +1,6 @@
 Gemfile.lock
-config
+config/settings.rb
+config/database.yml
 db/seeds.rb
 spec/data.rb
 *.swp

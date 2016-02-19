@@ -32,7 +32,7 @@ describe Facility::API do
    context 'GET /namespaces' do
       context 'with api token' do
          it 'returns all namespaces' do
-            get base_url + '/namespaces', {'X-NCU-API-TOKEN' => TestData::API_TOKEN}
+            get base_url + '/namespaces', {'X-NCU-API-TOKEN' => TestData::NCU_API_TOKEN}
             expect_status 200
             expect_json_types :array
             namespace = json_body.first
@@ -54,7 +54,7 @@ describe Facility::API do
    context 'GET /namespace' do
       context 'with api token' do
          it 'returns a namespace' do
-            get base_url + '/namespace?id=1', {'X-NCU-API-TOKEN' => TestData::API_TOKEN}
+            get base_url + '/namespace?id=1', {'X-NCU-API-TOKEN' => TestData::NCU_API_TOKEN}
             expect_status 200
             expect_json({id: 1, name: '測試', description: '這是測試'})
          end
@@ -83,7 +83,7 @@ describe Facility::API do
    context 'GET /facilities' do
       context 'with api token' do
          it 'returns all facilities in the namespace' do
-            get base_url + '/facilities?namespace_id=1', {'X-NCU-API-TOKEN' => TestData::API_TOKEN}
+            get base_url + '/facilities?namespace_id=1', {'X-NCU-API-TOKEN' => TestData::NCU_API_TOKEN}
             expect_status 200
             expect_json_types :array
             facility = json_body.first
