@@ -17,6 +17,7 @@ module Facility
             tokens_missing! if type == :both && token == 400
             token_missing! type if token == 400
             token_error! token if token.kind_of? Fixnum
+            DB::User.create!(uid: token['user'], name: token['name'], unit: token['unit']) unless type == :api || DB::User.exists?(uid: token['user'])
             @type = type
             @token = token
          end
@@ -208,7 +209,7 @@ module Facility
          put do
             @scope = [NCU::OAuth::MANAGE]
             find_token :access
-            not_found! 'facility' unless facility DB::Facility.find_by(id: params[:id])
+            not_found! 'facility' unless facility = DB::Facility.find_by(id: params[:id])
             forbidden! unless facility.namespace.users.find_by(uid: @token['user'])
             facility.name = params[:name]
             facility.description = params[:description]
@@ -230,7 +231,7 @@ module Facility
          delete do
             @scope = [NCU::OAuth::MANAGE]
             find_token :access
-            not_found! 'facility' unless facility DB::Facility.find_by(id: params[:id])
+            not_found! 'facility' unless facility = DB::Facility.find_by(id: params[:id])
             forbidden! unless facility.namespace.users.find_by(uid: @token['user'])
             Facility::Entities::Facility.represent facility.destroy!
          end
@@ -286,7 +287,7 @@ module Facility
          if @type == :api
             rents.each { |rent| rent[:creator].delete :id }
          end
-         rents
+         {rents: rents, count: rents.size, page: params[:page]}
       end
 
       resource :rent do
@@ -408,7 +409,7 @@ module Facility
          delete do
             @scope = [NCU::OAuth::WRITE, NCU::OAuth::MANAGE]
             find_token :access
-            not_found! 'Rent' unless rent = DB::Rent.find_by(params[:id])
+            not_found! 'Rent' unless rent = DB::Rent.find_by(id: params[:id])
             user = DB::User.find_by(uid: @token['user'])
             if @token['scope'].include? NCU::OAuth::MANAGE
                forbidden! unless rent.facility.namespace.users.include? user

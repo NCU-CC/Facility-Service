@@ -29,7 +29,7 @@ module NCU
             RestClient.get Settings::OAUTH_ACCESS_TOKEN_URL + this_token_string + oauth_params, {x_ncu_api_token: Settings::NCU_API_TOKEN} do |response, request, result, &block|
                if response.code == 200
                   res = JSON.parse response.body
-                  return @access_token = res.merge(token_info this_token_string) if !(res['scope'] & @scope).empty?
+                  return @access_token = res.merge(token_info this_token_string) unless (res['scope'] & @scope).empty?
                   @access_token = 403
                else
                   @access_token = 401
@@ -40,8 +40,8 @@ module NCU
 
          def api_or_access_token type
             return @api_or_access_token unless @api_or_access_token.nil?
-            return @api_or_access_token = api_token if type == :api
-            return @api_or_access_token = access_token if type == :access
+            return [@api_or_access_token = api_token, :api] if type == :api
+            return [@api_or_access_token = access_token, :access] if type == :access
             if access_token.kind_of? Fixnum 
                if api_token.kind_of? Fixnum
                   if access_token == 400 && api_token == 400

@@ -27,7 +27,7 @@ module Facility
       end
 
       class Span < Grape::Entity
-         expose :id, documentation: {type: 'string', desc: 'identifier', required: true}
+         expose :event_id, as: :id, documentation: {type: 'string', desc: 'identifier', required: true}
          expose :start, documentation: {type: 'string', format: 'date-time', desc: 'start time', required: true}
          expose :end, documentation: {type: 'string', format: 'date-time', desc: 'end time', required: true}
       end

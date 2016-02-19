@@ -1,5 +1,6 @@
 Gemfile.lock
 config
 db/seeds.rb
+spec/data.rb
 *.swp
 *.sqlite3

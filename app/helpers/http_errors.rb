@@ -12,7 +12,7 @@ module HTTP
          def forbidden!
             error! 'Forbidden', 403
          end
-         
+
          def tokens_missing!
             error! 'api_token or access_token is missing', 400
          end
