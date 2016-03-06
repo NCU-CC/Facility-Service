@@ -5,7 +5,7 @@ require 'spec_helper'
 require 'airborne'
 require './environment'
 require './app'
-require './spec/data'
+require './spec/data.rb'
 
 RSpec.configure do |config|
    config.color = true
@@ -29,10 +29,10 @@ describe Facility::API do
 
    let(:manage_token) {refresh TestData::REFRESH_TOKEN_MANAGE}
 
-   context 'GET /namespaces' do
+   context 'GET /namespace' do
       context 'with api token' do
          it 'returns all namespaces' do
-            get base_url + '/namespaces', {'X-NCU-API-TOKEN' => TestData::NCU_API_TOKEN}
+            get base_url + '/namespace', {'X-NCU-API-TOKEN' => TestData::API_TOKEN}
             expect_status 200
             expect_json_types :array
             namespace = json_body.first
@@ -42,7 +42,7 @@ describe Facility::API do
 
       context 'with access token' do
          it 'returns all your namespaces' do
-            get base_url + '/namespaces', {'Authorization' => "Bearer #{manage_token}"}
+            get base_url + '/namespace', {'Authorization' => "Bearer #{manage_token}"}
             expect_status 200
             expect_json_types :array
             namespace = json_body.first
@@ -54,7 +54,7 @@ describe Facility::API do
    context 'GET /namespace' do
       context 'with api token' do
          it 'returns a namespace' do
-            get base_url + '/namespace?id=1', {'X-NCU-API-TOKEN' => TestData::NCU_API_TOKEN}
+            get base_url + '/namespace/1', {'X-NCU-API-TOKEN' => TestData::API_TOKEN}
             expect_status 200
             expect_json({id: 1, name: '測試', description: '這是測試'})
          end
@@ -62,7 +62,7 @@ describe Facility::API do
 
       context 'with access token' do
          it 'returns a namespace of yours' do
-            get base_url + '/namespace?id=1', {'Authorization' => "Bearer #{manage_token}"}
+            get base_url + '/namespace/1', {'Authorization' => "Bearer #{manage_token}"}
             expect_status 200
             expect_json({id: 1, name: '測試', description: '這是測試'})
          end
@@ -71,19 +71,19 @@ describe Facility::API do
 
    context 'PUT /namespace' do
       it 'updates description of the namespace' do
-         put base_url + '/namespace', {id: 1, description: '餓死抬頭'}, {'Authorization' => "Bearer #{manage_token}"}
+         put base_url + '/namespace/1', {description: '餓死抬頭'}, {'Authorization' => "Bearer #{manage_token}"}
          expect_status 200
          expect_json({id: 1, name: '測試', description: '餓死抬頭'})
-         put base_url + '/namespace', {id: 1, description: '這是測試'}, {'Authorization' => "Bearer #{manage_token}"}
+         put base_url + '/namespace/1', {description: '這是測試'}, {'Authorization' => "Bearer #{manage_token}"}
          expect_status 200
          expect_json({id: 1, name: '測試', description: '這是測試'})
       end
    end
 
-   context 'GET /facilities' do
+   context 'GET /namespace/:id/facility' do
       context 'with api token' do
          it 'returns all facilities in the namespace' do
-            get base_url + '/facilities?namespace_id=1', {'X-NCU-API-TOKEN' => TestData::NCU_API_TOKEN}
+            get base_url + '/namespace/1/facility', {'X-NCU-API-TOKEN' => TestData::API_TOKEN}
             expect_status 200
             expect_json_types :array
             facility = json_body.first
@@ -93,7 +93,7 @@ describe Facility::API do
 
       context 'with access token' do
          it 'returns all facilities in your namespace' do
-            get base_url + '/facilities?namespace_id=1', {'Authorization' => "Bearer #{manage_token}"}
+            get base_url + '/namespace/1/facility', {'Authorization' => "Bearer #{manage_token}"}
             expect_status 200
             expect_json_types :array
             facility = json_body.first
