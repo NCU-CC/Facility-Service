@@ -39,7 +39,7 @@ module Facility
          expose :created_at, documentation: {type: 'string', format: 'date-time', desc: 'creation time'}
          expose :updated_at, documentation: {type: 'string', format: 'date-time', desc: 'last modification time'}
          expose :verified, documentation: {type: 'boolean', desc: 'true if verified'}
-         expose :spans, as: :span, using: Span, documentation: {is_array: true, required: true}
+         expose :spans, using: Span, documentation: {is_array: true, required: true}
       end
 
       class Rents < Grape::Entity

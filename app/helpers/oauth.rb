@@ -8,7 +8,7 @@ module NCU
       module Helpers
          def api_token
             return @api_token unless @api_token.nil?
-            if headers.has_key?('X-Ncu-Api-Token') && this_token_string = headers['X-Ncu-Api-Token']
+            if headers.key?('X-Ncu-Api-Token') && this_token_string = headers['X-Ncu-Api-Token']
                RestClient.get Settings::OAUTH_API_TOKEN_URL + this_token_string + oauth_params, {x_ncu_api_token: Settings::NCU_API_TOKEN} do |response, request, result, &block|
                   if response.code == 200
                      @api_token = JSON.parse response.body
@@ -82,7 +82,7 @@ module NCU
          end
 
          def oauth_params
-            '?ip=' + headers['X-Forwarded-For'] + (!header['Referer'].nil? ? '&referer=' + CGI.escape(headers['Referer']) : '' )
+            '?ip=' + headers['X-Forwarded-For'] + ( headers.key?('Referer') ? '&referer=' + CGI.escape(headers['Referer']) : '' )
          end
 
       end

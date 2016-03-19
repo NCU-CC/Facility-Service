@@ -1,7 +1,10 @@
 module Facility
    class V1 < Grape::API
       format :json
+      content_type :json, 'application/json;charset=UTF-8'
 
+      helpers HTTP::Error::Helpers
+      helpers NCU::OAuth::Helpers
       helpers do
          def request
             @request ||= ::Rack::Request.new(env)
@@ -23,16 +26,9 @@ module Facility
          end
       end
 
-      helpers HTTP::Error::Helpers
-      helpers NCU::OAuth::Helpers
-
       rescue_from RuntimeError do |e|
          V1.logger.error e
          error! 'Internal Server Error', 500
-      end
-
-      before do
-         header 'Content-Type', 'application/json;charset=UTF-8'
       end
 
       resource :namespace do
@@ -64,7 +60,7 @@ module Facility
          end
 
          route_param :id do
-            desc 'Returns namespace' do
+            desc 'Returns namespace.' do
                detail 'Bearer token is also available if the namespace is yours.'
                success Facility::Entities::Namespace
                failure [[401, 'Unauthorized'], [404, 'Not Found']]
@@ -91,7 +87,7 @@ module Facility
                Facility::Entities::Namespace.represent ns
             end
 
-            desc 'Updates namespace' do
+            desc 'Updates namespace.' do
                detail 'Only description is modifiable.'
                success Facility::Entities::Namespace
                failure [[401, 'Unauthorized'], [404, 'Not Found']]
@@ -116,64 +112,66 @@ module Facility
                Facility::Entities::Namespace.represent ns
             end
 
-            desc 'Return facilities.' do
-               detail 'Bearer token is also available if the namespace is yours.'
-               success Facility::Entities::Facilities
-               failure [[401, 'Unauthorized'], [404, 'Not Found']]
-               headers 'X-NCU-API-TOKEN': {
-                  description: 'NCU api token',
-                  required: false
-               }, Authorization: {
-                  description: 'NCU bearer token',
-                  required: false
-               }
-            end
-            params do
-               requires :id, type: Integer, desc: 'namespace identifier'
-               optional :limit, type: Integer, default: 10, desc: 'maximum number of facilities returned on one result page'
-               optional :page, type: Integer, default: 1, desc: 'which result page to return'
-               optional :order_by, type: String, values: ['created_at', 'updated_at'], default: 'created_at', desc: 'the order in the result'
-            end
-            get :facility do
-               @scope = [NCU::OAuth::MANAGE]
-               find_token
-               case @type
-               when :api
-                  not_found! 'Namespace' unless ns = DB::Namespace.find_by(id: params[:id])
-               when :access
-                  not_found! 'Namespace' unless ns = DB::User.find_by(uid: @token['user']).namespaces.find_by(id: params[:id])
+            resource :facility do
+               desc 'Return facilities.' do
+                  detail 'Bearer token is also available if the namespace is yours.'
+                  success Facility::Entities::Facilities
+                  failure [[401, 'Unauthorized'], [404, 'Not Found']]
+                  headers 'X-NCU-API-TOKEN': {
+                     description: 'NCU api token',
+                     required: false
+                  }, Authorization: {
+                     description: 'NCU bearer token',
+                     required: false
+                  }
                end
-               not_found! 'Facilities' unless facilities = ns.facilities.order(params[:order_by]).page(params[:page]).per(params[:limit])
-               Facility::Entities::Facility.represent facilities
-            end
+               params do
+                  requires :id, type: Integer, desc: 'namespace identifier'
+                  optional :limit, type: Integer, default: 10, desc: 'maximum number of facilities returned on one result page'
+                  optional :page, type: Integer, default: 1, desc: 'which result page to return'
+                  optional :order_by, type: String, values: ['created_at', 'updated_at'], default: 'created_at', desc: 'the order in the result'
+               end
+               get do
+                  @scope = [NCU::OAuth::MANAGE]
+                  find_token
+                  case @type
+                  when :api
+                     not_found! 'Namespace' unless ns = DB::Namespace.find_by(id: params[:id])
+                  when :access
+                     not_found! 'Namespace' unless ns = DB::User.find_by(uid: @token['user']).namespaces.find_by(id: params[:id])
+                  end
+                  not_found! 'Facilities' unless facilities = ns.facilities.order(params[:order_by]).page(params[:page]).per(params[:limit])
+                  Facility::Entities::Facility.represent facilities
+               end
 
-            desc 'Creates a facility' do
-               success Facility::Entities::Facility
-               failure [[401, 'Unauthorized']]
-               headers Authorization: {
-                  description: 'NCU bearer token',
-                  required: true
-               }
-            end
-            params do
-               requires :id, type: Integer, desc: 'namespace identifier'
-               requires :name, type: String, desc: 'name'
-               requires :description, type: String, desc: 'description'
-            end
-            post :facility do
-               @scope = [NCU::OAuth::MANAGE]
-               find_token :access
-               not_found! 'Namespace' unless ns = DB::User.find_by(uid: @token['user']).namespaces.find_by(id: params[:id]) 
-               facility = DB::Facility.create!(name: params[:name], description: params[:description])
-               ns.facilities << facility
-               Facility::Entities::Facility.represent facility
+               desc 'Creates a facility.' do
+                  success Facility::Entities::Facility
+                  failure [[401, 'Unauthorized']]
+                  headers Authorization: {
+                     description: 'NCU bearer token',
+                     required: true
+                  }
+               end
+               params do
+                  requires :id, type: Integer, desc: 'namespace identifier'
+                  requires :name, type: String, desc: 'name'
+                  requires :description, type: String, desc: 'description'
+               end
+               post do
+                  @scope = [NCU::OAuth::MANAGE]
+                  find_token :access
+                  not_found! 'Namespace' unless ns = DB::User.find_by(uid: @token['user']).namespaces.find_by(id: params[:id]) 
+                  facility = DB::Facility.create!(name: params[:name], description: params[:description])
+                  ns.facilities << facility
+                  Facility::Entities::Facility.represent facility
+               end
             end
          end
       end
 
       resource :facility do
          route_param :id do
-            desc 'Returns a facility' do
+            desc 'Returns a facility.' do
                detail 'Bearer token is also available if the facility is in your namespace.'
                success Facility::Entities::Facility
                failure [[401, 'Unauthorized'], [403, 'Forbidden'], [404, 'Not Found']]
@@ -196,7 +194,7 @@ module Facility
                Facility::Entities::Facility.represent facility
             end
 
-            desc 'Updates a facility' do
+            desc 'Updates a facility.' do
                success Facility::Entities::Facility
                failure [[401, 'Unauthorized'], [403, 'Forbidden'], [404, 'Not Found']]
                headers Authorization: {
@@ -220,7 +218,7 @@ module Facility
                Facility::Entities::Facility.represent facility
             end
 
-            desc 'Deletes a facility' do
+            desc 'Deletes a facility.' do
                success Facility::Entities::Facility
                failure [[401, 'Unauthorized'], [403, 'Forbidden'], [404, 'Not Found']]
                headers Authorization: {
@@ -239,87 +237,89 @@ module Facility
                Facility::Entities::Facility.represent facility.destroy!
             end
 
-            desc 'Return rents.' do
-               detail 'api token for all or bearer token for yours'
-               success Facility::Entities::Rents
-               failure [[401, 'Unauthorized'], [403, 'Forbidden'], [404, 'Not Found']]
-               headers 'X-NCU-API-TOKEN': {
-                  description: 'NCU api token',
-                  required: false
-               }, Authorization: {
-                  description: 'NCU bearer token',
-                  required: false
-               }
-            end
-            params do
-               requires :id, type: Integer, desc: 'facility identifier'
-               requires :from, type: DateTime, desc: 'lower bound (inclusive) to filter by'
-               requires :to, type: DateTime, desc: 'upper bound (exclusive) to filter by'
-               optional :verified, type: String, values: ['verified', 'unverified', 'both'], default: 'both', desc: 'verified, not or both'
-               optional :limit, type: Integer, default: 10, desc: 'maximum number of facilities returned on one result page'
-               optional :page, type: Integer, default: 1, desc: 'which result page to return'
-               optional :order_by, type: String, values: ['start', 'end', 'created_at', 'updated_at'], default: 'start', desc: 'the order in the result and filter by'
-            end
-            get :rent do
-               @scope = [NCU::OAuth::MANAGE, NCU::OAuth::READ]
-               find_token
-               not_found! 'Facility' unless facility = DB::Facility.find_by(id: params[:id])
-               case params[:verified]
-               when 'verified'
-                  verified = [true]
-               when 'unverified'
-                  verified = [false]
-               else 'both'
-                  verified = [true, false]
+            resource :rent do
+               desc 'Return rents.' do
+                  detail 'api token for all or bearer token for yours'
+                  success Facility::Entities::Rents
+                  failure [[401, 'Unauthorized'], [403, 'Forbidden'], [404, 'Not Found']]
+                  headers 'X-NCU-API-TOKEN': {
+                     description: 'NCU api token',
+                     required: false
+                  }, Authorization: {
+                     description: 'NCU bearer token',
+                     required: false
+                  }
                end
-               error! 'Not Implemented', 501 if ['start', 'end'].include? params[:order_by]
-               case @type
-               when :api
-                  not_found! 'Rents' unless rents = facility.rents.order(params[:order_by]).where(verified: verified).where(params[:order_by] => params[:from]...params[:to]).page(params[:page]).per(params[:limit])
-               when :access
-                  user = DB::User.find_by(uid: @token['user'])
-                  if @token['scope'].include? NCU::OAuth::MANAGE
-                     forbidden! unless facility.namespace.users.include? user
+               params do
+                  requires :id, type: Integer, desc: 'facility identifier'
+                  requires :from, type: DateTime, desc: 'lower bound (inclusive) to filter by'
+                  requires :to, type: DateTime, desc: 'upper bound (exclusive) to filter by'
+                  optional :verified, type: String, values: ['verified', 'unverified', 'both'], default: 'both', desc: 'verified, not or both'
+                  optional :limit, type: Integer, default: 10, desc: 'maximum number of facilities returned on one result page'
+                  optional :page, type: Integer, default: 1, desc: 'which result page to return'
+                  optional :order_by, type: String, values: ['start', 'end', 'created_at', 'updated_at'], default: 'start', desc: 'the order in the result and filter by'
+               end
+               get do
+                  @scope = [NCU::OAuth::MANAGE, NCU::OAuth::READ]
+                  find_token
+                  not_found! 'Facility' unless facility = DB::Facility.find_by(id: params[:id])
+                  case params[:verified]
+                  when 'verified'
+                     verified = [true]
+                  when 'unverified'
+                     verified = [false]
+                  else 'both'
+                     verified = [true, false]
+                  end
+                  error! 'Not Implemented', 501 if ['start', 'end'].include? params[:order_by]
+                  case @type
+                  when :api
                      not_found! 'Rents' unless rents = facility.rents.order(params[:order_by]).where(verified: verified).where(params[:order_by] => params[:from]...params[:to]).page(params[:page]).per(params[:limit])
-                  else
-                     not_found! 'Rents' unless rents = facility.rents.order(params[:order_by]).where(user: user).where(verified: verified).where(params[:order_by] => params[:from]...params[:to]).page(params[:page]).per(params[:limit])
+                  when :access
+                     user = DB::User.find_by(uid: @token['user'])
+                     if @token['scope'].include? NCU::OAuth::MANAGE
+                        forbidden! unless facility.namespace.users.include? user
+                        not_found! 'Rents' unless rents = facility.rents.order(params[:order_by]).where(verified: verified).where(params[:order_by] => params[:from]...params[:to]).page(params[:page]).per(params[:limit])
+                     else
+                        not_found! 'Rents' unless rents = facility.rents.order(params[:order_by]).where(user: user).where(verified: verified).where(params[:order_by] => params[:from]...params[:to]).page(params[:page]).per(params[:limit])
+                     end
+                  end
+                  rents = Facility::Entities::Rent.represent(rents).as_json
+                  if @type == :api
+                     rents.each { |rent| rent[:creator].delete :id }
+                  end
+                  {rents: rents, count: rents.size, page: params[:page]}
+               end
+
+               desc 'Creates a rent.' do
+                  success Facility::Entities::Rent
+                  failure [[401, 'Unauthorized']]
+                  headers Authorization: {
+                     description: 'NCU bearer token',
+                     required: true
+                  }
+               end
+               params do
+                  requires :id, type: Integer, desc: 'facility identifier'
+                  requires :name, type: String, desc: 'name'
+                  requires :spans, type: Array[JSON] do
+                     requires :start, type: DateTime, desc: 'start time'
+                     requires :end, type: DateTime, desc: 'end time'
                   end
                end
-               rents = Facility::Entities::Rent.represent(rents).as_json
-               if @type == :api
-                  rents.each { |rent| rent[:creator].delete :id }
+               post do
+                  @scope = [NCU::OAuth::WRITE]
+                  find_token :access
+                  not_found! 'Facility' unless facility = DB::Facility.find_by(id: params[:id])
+                  rent = DB::Rent.create!(name: params[:name], verified: false)
+                  facility.rents << rent
+                  DB::User.find_by(uid: @token['user']).rents << rent
+                  params[:spans].each do |time|
+                     span = DB::Span.create!(start: time[:start], 'end': time[:end])
+                     rent.spans << span
+                  end
+                  Facility::Entities::Rent.represent rent
                end
-               {rents: rents, count: rents.size, page: params[:page]}
-            end
-
-            desc 'Creates a rent.' do
-               success Facility::Entities::Rent
-               failure [[401, 'Unauthorized']]
-               headers Authorization: {
-                  description: 'NCU bearer token',
-                  required: true
-               }
-            end
-            params do
-               requires :id, type: Integer, desc: 'facility identifier'
-               requires :name, type: String, desc: 'name'
-               requires :spans, type: Array do
-                  requires :start, type: DateTime, desc: 'start time'
-                  requires :end, type: DateTime, desc: 'end time'
-               end
-            end
-            post :rent do
-               @scope = [NCU::OAuth::WRITE]
-               find_token :access
-               not_found! 'Facility' unless facility = DB::Facility.find_by(id: params[:id])
-               rent = DB::Rent.create!(name: params[:name], verified: false)
-               facility.rents << rent
-               DB::User.find_by(uid: @token['user']).rents << rent
-               params[:spans].each do |time|
-                  span = DB::Span.create!(start: time[:start], 'end': time[:end])
-                  rent.spans << span
-               end
-               Facility::Entities::Rent.represent rent
             end
          end
       end
@@ -421,7 +421,12 @@ module Facility
             put :verify do
                @scope = [NCU::OAuth::MANAGE]
                find_token :access
-               error! 'Not Implemented', 501
+               not_found! 'Rent' unless rent = DB::Rent.find_by(id: params[:id])
+               user = DB::User.find_by(uid: @token['user'])
+               forbidden! unless rent.facility.namespace.users.include? user
+               rent.verified = params[:verify]
+               rent.save!
+               Facility::Entities::Rent.represent rent
             end
          end
       end

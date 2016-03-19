@@ -3,5 +3,6 @@ config/settings.rb
 config/database.yml
 db/seeds.rb
 spec/data.rb
+.bundle
 *.swp
 *.sqlite3

@@ -1,3 +1,4 @@
+require 'bundler/setup'
 require 'rack/cors'
 require 'grape'
 require 'grape_logging'
@@ -13,4 +14,5 @@ require 'grape-entity'
 # require 'google/api_client/auth/installed_app'
 require './config/settings'
 
+Grape::ActiveRecord.configure_from_file! 'config/database.yml'
 ActiveRecord::Base.default_timezone = :local
