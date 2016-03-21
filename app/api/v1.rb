@@ -353,7 +353,7 @@ module Facility
                   forbidden! unless @token['scope'].include?(NCU::OAuth::READ) && rent.user == user || @token['scope'].include?(NCU::OAuth::MANAGE) && rent.facility.namespace.users.include?(user)
                end
                rent = Facility::Entities::Rent.represent(rent).as_json
-               rent[:creator].delete :id
+               rent[:creator].delete :id if @type == :api
                rent
             end
 
