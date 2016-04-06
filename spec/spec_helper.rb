@@ -233,7 +233,7 @@ describe Facility::API do
             context 'GET' do
                context 'with api token' do
                   it 'return rents in the facility' do
-                     get base_url + "/facility/1/rent?from=#{DateTime.now - 1}&to=#{DateTime.now}&order_by=created_at", {'X-NCU-API-TOKEN' => TestData::API_TOKEN}
+                     get base_url + "/facility/1/rent?from=#{DateTime.now - 1}&to=#{DateTime.now}&order_by=start", {'X-NCU-API-TOKEN' => TestData::API_TOKEN}
                      expect_status 200
                      expect_json_types({
                         rents: :array_of_objects,
@@ -258,7 +258,7 @@ describe Facility::API do
 
                context 'with manage access token' do
                   it 'return rents in your facility' do
-                     get base_url + "/facility/1/rent?from=#{DateTime.now - 1}&to=#{DateTime.now}&order_by=created_at", {'Authorization' => "Bearer #{manage_token}"}
+                     get base_url + "/facility/1/rent?from=#{DateTime.now - 1}&to=#{DateTime.now}&order_by=start", {'Authorization' => "Bearer #{manage_token}"}
                      expect_status 200
                      expect_json_types({
                         rents: :array_of_objects,
@@ -284,7 +284,7 @@ describe Facility::API do
 
                context 'with read access token' do
                   it 'return your rents in the facility' do
-                     get base_url + "/facility/1/rent?from=#{DateTime.now - 1}&to=#{DateTime.now}&order_by=created_at", {'Authorization' => "Bearer #{read_token}"}
+                     get base_url + "/facility/1/rent?from=#{DateTime.now - 1}&to=#{DateTime.now}&order_by=start", {'Authorization' => "Bearer #{read_token}"}
                      expect_status 200
                      expect_json_types({
                         rents: :array_of_objects,
@@ -424,8 +424,32 @@ describe Facility::API do
             end
          end
 
+         context 'DELETE' do
+            it 'deletes the rent' do
+               delete base_url + '/rent/2', {}, {'Authorization' => "Bearer #{write_token}"}
+               expect_status 200
+               expect_json_types({
+                  created_at: :string,
+                  updated_at: :string,
+                  spans: :array_of_objects
+               })
+               rent = json_body
+               [:created_at, :updated_at, :spans].each {|key| rent.delete key}
+               expect(rent).to eq({
+                  id: 2,
+                  creator: {
+                  id: TestData::User::ID,
+                  name: TestData::User::NAME,
+                  unit: TestData::User::UNIT
+               },
+                  name: 'test',
+                  verified: false,
+               })
+            end
+         end
+
          context 'PUT verify' do
-            it 'verify the rent' do
+            it 'verifies the rent' do
                put base_url + '/rent/1/verify', {verify: true}, {'Authorization' => "Bearer #{manage_token}"}
                expect_status 200
                expect_json_types({
@@ -445,7 +469,6 @@ describe Facility::API do
                   name: '阿哞',
                   verified: true
                })
-
             end
          end
       end

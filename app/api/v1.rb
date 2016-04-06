@@ -271,17 +271,28 @@ module Facility
                   else 'both'
                      verified = [true, false]
                   end
-                  error! 'Not Implemented', 501 if ['start', 'end'].include? params[:order_by]
                   case @type
                   when :api
-                     not_found! 'Rents' unless rents = facility.rents.order(params[:order_by]).where(verified: verified).where(params[:order_by] => params[:from]...params[:to]).page(params[:page]).per(params[:limit])
+                     if ['start', 'end'].include? params[:order_by]
+                        not_found! 'Rents' unless rents = facility.rents.joins(:spans).order("spans.#{params[:order_by]}").where(verified: verified).where(:spans => {params[:order_by] => params[:from]...params[:to]}).page(params[:page]).per(params[:limit]).uniq
+                     else
+                        not_found! 'Rents' unless rents = facility.rents.order(params[:order_by]).where(verified: verified).where(params[:order_by] => params[:from]...params[:to]).page(params[:page]).per(params[:limit])
+                     end
                   when :access
                      user = DB::User.find_by(uid: @token['user'])
                      if @token['scope'].include? NCU::OAuth::MANAGE
                         forbidden! unless facility.namespace.users.include? user
-                        not_found! 'Rents' unless rents = facility.rents.order(params[:order_by]).where(verified: verified).where(params[:order_by] => params[:from]...params[:to]).page(params[:page]).per(params[:limit])
+                        if ['start', 'end'].include? params[:order_by]
+                           not_found! 'Rents' unless rents = facility.rents.joins(:spans).order("spans.#{params[:order_by]}").where(verified: verified).where(:spans => {params[:order_by] => params[:from]...params[:to]}).page(params[:page]).per(params[:limit]).uniq
+                        else
+                           not_found! 'Rents' unless rents = facility.rents.order(params[:order_by]).where(verified: verified).where(params[:order_by] => params[:from]...params[:to]).page(params[:page]).per(params[:limit])
+                        end
                      else
-                        not_found! 'Rents' unless rents = facility.rents.order(params[:order_by]).where(user: user).where(verified: verified).where(params[:order_by] => params[:from]...params[:to]).page(params[:page]).per(params[:limit])
+                        if ['start', 'end'].include? params[:order_by]
+                           not_found! 'Rents' unless rents = facility.rents.joins(:spans).order("spans.#{params[:order_by]}").where(user: user).where(verified: verified).where(:spans => {params[:order_by] => params[:from]...params[:to]}).page(params[:page]).per(params[:limit]).uniq
+                        else
+                           not_found! 'Rents' unless rents = facility.rents.order(params[:order_by]).where(user: user).where(verified: verified).where(params[:order_by] => params[:from]...params[:to]).page(params[:page]).per(params[:limit])
+                        end
                      end
                   end
                   rents = Facility::Entities::Rent.represent(rents).as_json
@@ -312,12 +323,11 @@ module Facility
                   find_token :access
                   not_found! 'Facility' unless facility = DB::Facility.find_by(id: params[:id])
                   rent = DB::Rent.create!(name: params[:name], verified: false)
-                  facility.rents << rent
-                  DB::User.find_by(uid: @token['user']).rents << rent
                   params[:spans].each do |time|
-                     span = DB::Span.create!(start: time[:start], 'end': time[:end])
-                     rent.spans << span
+                     rent.spans << DB::Span.create!(start: time[:start], 'end': time[:end])
                   end
+                  DB::User.find_by(uid: @token['user']).rents << rent
+                  facility.rents << rent
                   Facility::Entities::Rent.represent rent
                end
             end
@@ -401,6 +411,7 @@ module Facility
                   forbidden! unless rent.facility.namespace.users.include? user
                else
                   forbidden! unless rent.user == user
+                  forbidden! if rent.verified
                end
                Facility::Entities::Rent.represent rent.destroy!
             end
