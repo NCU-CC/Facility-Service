@@ -1,6 +1,7 @@
 Gemfile.lock
 config/settings.rb
 config/database.yml
+config/*.json
 db/seeds.rb
 spec/data.rb
 .bundle

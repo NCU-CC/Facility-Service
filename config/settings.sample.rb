@@ -1,5 +1,6 @@
 module Settings
-   LOG_PATH = '/path/to/facility/log/facility.log'
+   LOG_PATH = '/path/to/facility.log'
+   GOOGLE_JSON_PATH = '/path/to/google.json'
    API_URL = 'http://your.api.root.url'
    OAUTH_ACCESS_TOKEN_URL = 'http://oauth.access.token.url/access_tokens/token/'
    OAUTH_API_TOKEN_URL = 'http://oauth.api.token.url/api_tokens/token/'
