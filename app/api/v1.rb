@@ -379,7 +379,7 @@ module Facility
             params do
                requires :id, type: Integer, desc: 'identifier'
                requires :name, type: String, desc: 'name'
-               requires :spans, type: Array do
+               requires :spans, type: Array[JSON] do
                   requires :start, type: DateTime, desc: 'start time'
                   requires :end, type: DateTime, desc: 'end time'
                end
@@ -387,7 +387,24 @@ module Facility
             put do
                @scope = [NCU::OAuth::MANAGE]
                find_token :access
-               error! 'Not Implemented', 501
+               not_found! 'Rent' unless rent = DB::Rent.find_by(id: params[:id])
+               user = DB::User.find_by(uid: @token['user'])
+               forbidden! unless rent.facility.namespace.users.include?(user)
+               rent.update!(name: params[:name])
+               spans = rent.spans
+               new_spans = []
+               params[:spans].each do |time|
+                  new_spans << DB::Span.new(start: time[:start], 'end': time[:end])
+               end
+               spans, new_spans = spans - new_spans, new_spans - spans
+               spans.each do |span|
+                  span.destroy!
+               end
+               new_spans.each do |span|
+                  span.save!
+                  rent.spans << span
+               end
+               Facility::Entities::Rent.represent rent
             end
 
             desc 'Deletes a rent.' do

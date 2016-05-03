@@ -250,7 +250,7 @@ describe Facility::API do
                            name: TestData::User::NAME,
                            unit: TestData::User::UNIT
                         },
-                        name: '阿哞',
+                        name: '阿',
                         verified: false
                      })
                   end
@@ -276,7 +276,7 @@ describe Facility::API do
                            name: TestData::User::NAME,
                            unit: TestData::User::UNIT
                         },
-                        name: '阿哞',
+                        name: '阿',
                         verified: false
                      })
                   end
@@ -302,7 +302,7 @@ describe Facility::API do
                            name: TestData::User::NAME,
                            unit: TestData::User::UNIT
                         },
-                        name: '阿哞',
+                        name: '阿',
                         verified: false
                      })
                   end
@@ -327,7 +327,7 @@ describe Facility::API do
                   rent = json_body
                   [:created_at, :updated_at, :spans].each {|key| rent.delete key}
                   expect(rent).to eq({
-                     id: 2,
+                     id: 3,
                      creator: {
                         id: TestData::User::ID,
                         name: TestData::User::NAME,
@@ -362,7 +362,7 @@ describe Facility::API do
                         name: TestData::User::NAME,
                         unit: TestData::User::UNIT
                      },
-                     name: '阿哞',
+                     name: '阿',
                      verified: false
                   })
                end
@@ -386,7 +386,7 @@ describe Facility::API do
                         name: TestData::User::NAME,
                         unit: TestData::User::UNIT
                      },
-                     name: '阿哞',
+                     name: '阿',
                      verified: false
                   })
                end
@@ -410,7 +410,7 @@ describe Facility::API do
                         name: TestData::User::NAME,
                         unit: TestData::User::UNIT
                      },
-                     name: '阿哞',
+                     name: '阿',
                      verified: false
                   })
                end
@@ -418,15 +418,14 @@ describe Facility::API do
          end
 
          context 'PUT' do
-            xit 'updates the rent in your facility' do
-               put base_url + '/rent/1', {}, {'Authorization' => "Bearer #{manage_token}"}
-               expect_status 501
-            end
-         end
-
-         context 'DELETE' do
-            it 'deletes the rent' do
-               delete base_url + '/rent/2', {}, {'Authorization' => "Bearer #{write_token}"}
+            it 'updates the rent in your facility' do
+               put base_url + '/rent/2', {
+                  name: 'test',
+                  spans: JSON.generate([
+                     {start: DateTime.now, end: DateTime.now + 1},
+                     {start: DateTime.now + 1, end: DateTime.now + 2}
+                  ])
+               }, {'Authorization' => "Bearer #{manage_token}"}
                expect_status 200
                expect_json_types({
                   created_at: :string,
@@ -437,6 +436,30 @@ describe Facility::API do
                [:created_at, :updated_at, :spans].each {|key| rent.delete key}
                expect(rent).to eq({
                   id: 2,
+                  creator: {
+                     id: TestData::User::ID,
+                     name: TestData::User::NAME,
+                     unit: TestData::User::UNIT
+                  },
+                  name: 'test',
+                  verified: false,
+               })
+            end
+         end
+
+         context 'DELETE' do
+            it 'deletes the rent' do
+               delete base_url + '/rent/3', {}, {'Authorization' => "Bearer #{write_token}"}
+               expect_status 200
+               expect_json_types({
+                  created_at: :string,
+                  updated_at: :string,
+                  spans: :array_of_objects
+               })
+               rent = json_body
+               [:created_at, :updated_at, :spans].each {|key| rent.delete key}
+               expect(rent).to eq({
+                  id: 3,
                   creator: {
                   id: TestData::User::ID,
                   name: TestData::User::NAME,
@@ -466,7 +489,7 @@ describe Facility::API do
                      name: TestData::User::NAME,
                      unit: TestData::User::UNIT
                   },
-                  name: '阿哞',
+                  name: '阿',
                   verified: true
                })
             end

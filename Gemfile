@@ -1,5 +1,6 @@
 source 'http://rubygems.nos.ncu.edu.tw'
 gem 'json'
+gem 'rake'
 gem 'rack'
 gem 'rack-cors'
 gem 'rack-contrib'
