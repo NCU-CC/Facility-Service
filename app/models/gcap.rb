@@ -1,19 +1,16 @@
-class Gcap
+module Gcap
+   extend self
    APPLICATION_NAME = 'FacilityService'
    SCOPE = Google::Apis::CalendarV3::AUTH_CALENDAR
 
    attr_reader :client, :calendar, :event
 
-   def initialize
+   def self.initialize
       @client = Google::Apis::CalendarV3::CalendarService.new
       @client.client_options.application_name = APPLICATION_NAME
-      @client.authorization = authorize
+      @client.authorization = Google::Auth::ServiceAccountCredentials.make_creds(json_key_io: File.new(Settings::GOOGLE_JSON_PATH), scope: SCOPE)
       @event = Event.new @client
       @calendar = Calendar.new @client
-   end
-
-   def authorize
-      Google::Auth::ServiceAccountCredentials.make_creds(json_key_io: File.new(Settings::GOOGLE_JSON_PATH), scope: SCOPE)
    end
 
    class Calendar
@@ -32,13 +29,15 @@ class Gcap
          calendars
       end
 
+      # requires: [:summary, :description]
       def insert calendar
          @client.insert_calendar Google::Apis::CalendarV3::Calendar.new(calendar) do |calendar, err|
             raise err unless err.nil?
-            client.insert_acl(calendar.id, Google::Apis::CalendarV3::AclRule.new({role: 'reader', scope: {type: 'default'}}))
+            @client.insert_acl(calendar.id, Google::Apis::CalendarV3::AclRule.new({role: 'reader', scope: {type: 'default'}}))
          end
       end
 
+      # requires: [:id, :summary, description]
       def update calendar
          @client.update_calendar calendar[:id], Google::Apis::CalendarV3::Calendar.new(calendar) do |calendar, err|
             raise err unless err.nil?
@@ -86,6 +85,13 @@ class Gcap
             raise err unless err.nil?
          end
       end
+
+      def move calendar_id, event_id, new_calendar_id
+         @client.move_event calendar_id, event_id, new_calendar_id do |event, err|
+            raise err unless err.nil?
+         end
+      end
    end
+   initialize
 end
 

@@ -61,8 +61,8 @@ module Facility
                      rent.update!(name: params[:name])
                      spans = rent.spans
                      new_spans = []
-                     params[:spans].each do |time|
-                        new_spans << DB::Span.new(start: time[:start], 'end': time[:end])
+                     params[:spans].each do |span|
+                        new_spans << DB::Span.new(start: span[:start], 'end': span[:end], rent: rent)
                      end
                      spans, new_spans = spans - new_spans, new_spans - spans
                      spans.each do |span|
@@ -70,7 +70,6 @@ module Facility
                      end
                      new_spans.each do |span|
                         span.save!
-                        rent.spans << span
                      end
                      Entities::Rent.represent rent
                   end

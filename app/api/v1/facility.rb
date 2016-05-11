@@ -155,12 +155,10 @@ module Facility
                         @scope = [NCU::OAuth::WRITE]
                         find_token :access
                         not_found! 'Facility' unless facility = DB::Facility.find_by(id: params[:id])
-                        rent = DB::Rent.create!(name: params[:name], verified: false)
-                        params[:spans].each do |time|
-                           rent.spans << DB::Span.create!(start: time[:start], 'end': time[:end])
+                        rent = DB::Rent.create!(name: params[:name], verified: false, facility: facility, user: DB::User.find_by(uid: @token['user']))
+                        params[:spans].each do |span|
+                           DB::Span.create!(start: span[:start], 'end': span[:end], rent: rent)
                         end
-                        DB::User.find_by(uid: @token['user']).rents << rent
-                        facility.rents << rent
                         Entities::Rent.represent rent
                      end
                   end

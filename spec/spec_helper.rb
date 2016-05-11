@@ -116,12 +116,12 @@ describe Facility::API do
                      expect_status 200
                      expect_json_types :array
                      facility = json_body.first
+                     expect(facility.delete :verify_calendar_id).to be_a(String)
+                     expect(facility.delete :rent_calendar_id).to be_a(String)
                      expect(facility).to eq({
                         id: 1,
                         name: 'test',
                         description: 'testing',
-                        verify_calendar_id: nil,
-                        rent_calendar_id: nil
                      })
                   end
                end
@@ -132,12 +132,12 @@ describe Facility::API do
                      expect_status 200
                      expect_json_types :array
                      facility = json_body.first
+                     expect(facility.delete :verify_calendar_id).to be_a(String)
+                     expect(facility.delete :rent_calendar_id).to be_a(String)
                      expect(facility).to eq({
                         id: 1,
                         name: 'test',
                         description: 'testing',
-                        verify_calendar_id: nil,
-                        rent_calendar_id: nil
                      })
                   end
                end
@@ -147,12 +147,12 @@ describe Facility::API do
                it 'creates a new facility to your namespace' do
                   post base_url + '/namespace/1/facility', {name: 'name', description: 'description'}, {'Authorization' => "Bearer #{manage_token}"}
                   expect_status 201
+                  expect(json_body.delete :verify_calendar_id).to be_a(String)
+                  expect(json_body.delete :rent_calendar_id).to be_a(String)
                   expect_json({
                      id: 3,
                      name: 'name',
                      description: 'description',
-                     verify_calendar_id: nil,
-                     rent_calendar_id: nil
                   })
                end
             end
@@ -167,12 +167,12 @@ describe Facility::API do
                it 'returns the facility' do
                   get base_url + '/facility/1', {'X-NCU-API-TOKEN' => TestData::API_TOKEN}
                   expect_status 200
+                  expect(json_body.delete :verify_calendar_id).to be_a(String)
+                  expect(json_body.delete :rent_calendar_id).to be_a(String)
                   expect_json({
                      id: 1,
                      name: 'test',
                      description: 'testing',
-                     verify_calendar_id: nil,
-                     rent_calendar_id: nil
                   })
                end
             end
@@ -181,12 +181,12 @@ describe Facility::API do
                it 'returns your facility' do
                   get base_url + '/facility/1', {'Authorization' => "Bearer #{manage_token}"}
                   expect_status 200
+                  expect(json_body.delete :verify_calendar_id).to be_a(String)
+                  expect(json_body.delete :rent_calendar_id).to be_a(String)
                   expect_json({
                      id: 1,
                      name: 'test',
                      description: 'testing',
-                     verify_calendar_id: nil,
-                     rent_calendar_id: nil
                   })
                end
             end
@@ -196,21 +196,21 @@ describe Facility::API do
             it 'updates the facility' do
                put base_url + '/facility/1', {name: '測試', description: '測試中'}, {'Authorization' => "Bearer #{manage_token}"}
                expect_status 200
+               expect(json_body.delete :verify_calendar_id).to be_a(String)
+               expect(json_body.delete :rent_calendar_id).to be_a(String)
                expect_json({
                   id: 1,
                   name: '測試',
                   description: '測試中',
-                  verify_calendar_id: nil,
-                  rent_calendar_id: nil
                })
                put base_url + '/facility/1', {name: 'test', description: 'testing'}, {'Authorization' => "Bearer #{manage_token}"}
                expect_status 200
+               expect(json_body.delete :verify_calendar_id).to be_a(String)
+               expect(json_body.delete :rent_calendar_id).to be_a(String)
                expect_json({
                   id: 1,
                   name: 'test',
                   description: 'testing',
-                  verify_calendar_id: nil,
-                  rent_calendar_id: nil
                })
             end
          end
@@ -219,12 +219,12 @@ describe Facility::API do
             it 'deletes the facility' do
                delete base_url + '/facility/2', {}, {'Authorization' => "Bearer #{manage_token}"}
                expect_status 200
+               expect(json_body.delete :verify_calendar_id).to be_a(String)
+               expect(json_body.delete :rent_calendar_id).to be_a(String)
                expect_json({
                   id: 2,
                   name: 'test2',
                   description: 'testing2',
-                  verify_calendar_id: nil,
-                  rent_calendar_id: nil
                })
             end
          end
@@ -241,9 +241,9 @@ describe Facility::API do
                         page: :integer
                      })
                      rent = json_body[:rents].first
-                     expect(rent.delete(:created_at).nil?).to eq(false)
-                     expect(rent.delete(:updated_at).nil?).to eq(false)
-                     expect(rent.delete(:spans).nil?).to eq(false)
+                     expect(rent.delete(:created_at)).to be_a(String)
+                     expect(rent.delete(:updated_at)).to be_a(String)
+                     expect(rent.delete(:spans)).to be_an(Array)
                      expect(rent).to eq({
                         id: 1,
                         creator: {
@@ -266,9 +266,9 @@ describe Facility::API do
                         page: :integer
                      })
                      rent = json_body[:rents].first
-                     expect(rent.delete(:created_at).nil?).to eq(false)
-                     expect(rent.delete(:updated_at).nil?).to eq(false)
-                     expect(rent.delete(:spans).nil?).to eq(false)
+                     expect(rent.delete(:created_at)).to be_a(String)
+                     expect(rent.delete(:updated_at)).to be_a(String)
+                     expect(rent.delete(:spans)).to be_an(Array)
                      expect(rent).to eq({
                         id: 1,
                         creator: {

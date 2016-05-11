@@ -132,8 +132,7 @@ module Facility
                         @scope = [NCU::OAuth::MANAGE]
                         find_token :access
                         not_found! 'Namespace' unless ns = DB::User.find_by(uid: @token['user']).namespaces.find_by(id: params[:id]) 
-                        facility = DB::Facility.create!(name: params[:name], description: params[:description])
-                        ns.facilities << facility
+                        facility = DB::Facility.create!(name: params[:name], description: params[:description], namespace: ns)
                         Entities::Facility.represent facility
                      end
                   end
