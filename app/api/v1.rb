@@ -37,12 +37,13 @@ module Facility
          V1.logger.error e
          error! 'Internal Server Error', 500
       end
-      
+
       load_namespace
       load_facility
       load_rent
 
-      add_swagger_documentation api_version: 'v1',
+      add_swagger_documentation \
+         api_version: 'v1',
          hide_documentation_path: true,
          hide_format: true,
          mount_path: '/doc',
